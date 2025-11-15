@@ -1,52 +1,69 @@
 package contact;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+// Tests for the ContactService class.
+// Covers add, delete, update, and lookup behavior.
 public class ContactServiceTest {
 
-    // Test adding a new contact.
+    // Test adding a new contact with a unique ID
     @Test
     void testAddContact_withUniqueId_addsSuccessfully() {
         ContactService service = new ContactService();
         Contact contact = new Contact("001", "Dom", "Smith", "1234567890", "123 Main");
+
         service.addContact(contact);
-        assertEquals("Dom", service.getContact("001").getFirstName());
+
+        Contact result = service.getContact("001");
+        assertNotNull(result);
+        assertEquals("Dom", result.getFirstName());
     }
 
-    // Test adding a contact with an ID.
+    // Adding a contact with a duplicate ID should throw an exception
     @Test
     void testAddContact_withDuplicateId_throwsException() {
         ContactService service = new ContactService();
-        service.addContact(new Contact("001", "Dom", "Smith", "1234567890", "123 Main"));
-        assertThrows(IllegalArgumentException.class, () -> 
-            service.addContact(new Contact("001", "Jane", "Doe", "9876543210", "456 Elm"))
-        );
+        Contact contact1 = new Contact("001", "Dom", "Smith", "1234567890", "123 Main");
+        Contact contact2 = new Contact("001", "Alex", "Jones", "0987654321", "456 Oak");
+
+        service.addContact(contact1);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addContact(contact2));
     }
 
-    // Test deleting an contact
+    // Deleting an existing contact should remove it from the map
     @Test
     void testDeleteContact_withExistingId_deletesSuccessfully() {
         ContactService service = new ContactService();
-        service.addContact(new Contact("001", "Dom", "Smith", "1234567890", "123 Main"));
+        Contact contact = new Contact("001", "Dom", "Smith", "1234567890", "123 Main");
+
+        service.addContact(contact);
         service.deleteContact("001");
-        assertNull(service.getContact("001")); // Should return null
+
+        assertNull(service.getContact("001"));
     }
 
-    // Test deleting a non-existent contact
+    // Deleting a non-existent contact should throw NoSuchElementException
     @Test
-    void testDeleteContact_withNonexistentId_throwsException() {
+    void testDeleteContact_withInvalidId_throwsException() {
         ContactService service = new ContactService();
-        assertThrows(NoSuchElementException.class, () -> service.deleteContact("999"));
+
+        assertThrows(NoSuchElementException.class,
+                () -> service.deleteContact("999"));
     }
 
-    // Test updating all fields of a contact
+    // Updating an existing contact should change all fields as expected
     @Test
-    void testUpdateContactFields_withValidData_updatesSuccessfully() {
+    void testUpdateContactFields_withValidId_updatesSuccessfully() {
         ContactService service = new ContactService();
-        service.addContact(new Contact("001", "Dom", "Smith", "1234567890", "123 Main"));
+        Contact contact = new Contact("001", "Dom", "Smith", "1234567890", "123 Main");
+
+        service.addContact(contact);
 
         service.updateFirstName("001", "Alex");
         service.updateLastName("001", "Johnson");
@@ -60,10 +77,12 @@ public class ContactServiceTest {
         assertEquals("789 Sunset Blvd", updated.getAddress());
     }
 
-    // Test updating a field on a non-existent contact
+    // Updating a non-existent contact should throw NoSuchElementException
     @Test
     void testUpdateFirstName_withInvalidId_throwsException() {
         ContactService service = new ContactService();
-        assertThrows(NullPointerException.class, () -> service.updateFirstName("999", "Ghost"));
+
+        assertThrows(NoSuchElementException.class,
+                () -> service.updateFirstName("999", "Ghost"));
     }
 }
